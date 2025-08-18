@@ -113,15 +113,15 @@ func parseSignal(tokens []string, lineInDbc int, message *can.Message) (can.Sign
 	signal := can.Signal{}
 
 	signal.Name = tokens[1]
-	err := parseBitInfo(tokens[1], &signal)
+	err := parseBitInfo(tokens[3], &signal)
 	if err == nil {
 		return signal, err
 	}
-	err = parseFactorOffset(tokens[2], &signal)
+	err = parseFactorOffset(tokens[4], &signal)
 	if err == nil {
 		return signal, err
 	}
-	err = parseMinMax(tokens[3], &signal)
+	err = parseMinMax(tokens[5], &signal)
 	if err == nil {
 		return signal, err
 	}
@@ -134,24 +134,28 @@ func parseSignal(tokens []string, lineInDbc int, message *can.Message) (can.Sign
 }
 
 func parseBitInfo(token string, signal *can.Signal) error {
-	re := regexp.MustCompile(`^(\d+)\|(\d+)@(\d+)$`)
+	re := regexp.MustCompile(`^(\d+)\|(\d+)@(\d+)`)
 	matches := re.FindStringSubmatch(token)
-	if matches == nil {
+
+	if matches == nil || len(matches) != 4 {
 		return errors.New("Error parsing bit info for string " + token)
 	}
+	matches = matches[1:]
 	startBit, err := strconv.ParseUint(matches[0], 10, 64)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Can't parse signal startBit %s", token))
 	}
 	signal.StartBit = startBit
 
-	bitLength, err := strconv.ParseUint(matches[0], 10, 64)
+	bitLength, err := strconv.ParseUint(matches[1], 10, 64)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Can't parse signal bitLength %s", token))
 	}
 	signal.BitLength = bitLength
-
-	signal.IsLittleEndian = strings.HasPrefix(matches[2], "1")
+	signal.IsLittleEndian, err = strconv.ParseBool(matches[2])
+	if err != nil {
+		return errors.New(fmt.Sprintf("Can't parse signal isLittleEndian %s", token))
+	}
 	return nil
 }
 
