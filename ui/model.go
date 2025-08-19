@@ -239,7 +239,7 @@ func (m Model) renderDetail() string {
 			sig := m.resultsSignals[m.cursor]
 			out = fmt.Sprintf(
 				"Signal\n\nName: %s\nStartBit: %d\nLength: %d\nMsg: %s\n",
-				sig.Name, sig.StartBit, sig.BitLength, sig.Label,
+				sig.Name, sig.StartBit, sig.BitLength, sig.MsgName,
 			)
 		} else {
 			out = emptyStyle.Render("No signal selected")
@@ -248,9 +248,12 @@ func (m Model) renderDetail() string {
 		if len(m.resultMessages) > 0 {
 			msg := m.resultMessages[m.cursor]
 			out = fmt.Sprintf(
-				"Message\n\nName: %s\nID: %#X\nSource: %d",
+				"Message\n\nName: %s\nID: %#X\nSource: %d\nSignals:\n",
 				msg.Name, msg.CanId, msg.Source,
 			)
+			for _, sig := range msg.Signals {
+				out += fmt.Sprintf("\t%s - id : %d\n", sig.Name, sig.SigID)
+			}
 		} else {
 			out = emptyStyle.Render("No message selected")
 		}
