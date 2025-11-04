@@ -34,31 +34,31 @@ type Model struct {
 
 var (
 	borderStyle = lipgloss.NewStyle().
-		Border(lipgloss.RoundedBorder()).
-		BorderForeground(lipgloss.Color("240")).
-		Padding(0, 1)
+			Border(lipgloss.RoundedBorder()).
+			BorderForeground(lipgloss.Color("240")).
+			Padding(0, 1)
 
 	activeCursorStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("229")).
-		Background(lipgloss.Color("57")).
-		Bold(true)
+				Foreground(lipgloss.Color("229")).
+				Background(lipgloss.Color("57")).
+				Bold(true)
 
 	headerStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("212")).
-		Bold(true).
-		PaddingBottom(1)
+			Foreground(lipgloss.Color("212")).
+			Bold(true).
+			PaddingBottom(1)
 
 	emptyStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("240")).
-		Italic(true)
+			Foreground(lipgloss.Color("240")).
+			Italic(true)
 	footerStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("241")).
-		PaddingTop(1)
+			Foreground(lipgloss.Color("241")).
+			PaddingTop(1)
 
 	helpStyle = lipgloss.NewStyle().
-		Foreground(lipgloss.Color("245")).
-		PaddingTop(0).
-		PaddingBottom(0)
+			Foreground(lipgloss.Color("245")).
+			PaddingTop(0).
+			PaddingBottom(0)
 )
 
 func InitialModel(msgs []*can.Message, sigs []*can.Signal) Model {
@@ -239,8 +239,14 @@ func (m Model) renderDetail() string {
 			sig := m.resultsSignals[m.cursor]
 			out = fmt.Sprintf(
 				"Signal\n\nName: %s\nStartBit: %d\nLength: %d\nMsg: %s\n",
-				sig.Name, sig.StartBit, sig.BitLength, sig.Label,
+				sig.Name, sig.StartBit, sig.BitLength, sig.MsgName,
 			)
+			if len(sig.States) > 0 {
+				out += "States:\n"
+				for _, state := range sig.States {
+					out += fmt.Sprintf("\t%d - %s\n", state.Value, state.Name)
+				}
+			}
 		} else {
 			out = emptyStyle.Render("No signal selected")
 		}
@@ -248,9 +254,12 @@ func (m Model) renderDetail() string {
 		if len(m.resultMessages) > 0 {
 			msg := m.resultMessages[m.cursor]
 			out = fmt.Sprintf(
-				"Message\n\nName: %s\nID: %#X\nSource: %d",
+				"Message\n\nName: %s\nID: %#X\nSource: %d\nSignals:\n",
 				msg.Name, msg.CanId, msg.Source,
 			)
+			for _, sig := range msg.Signals {
+				out += fmt.Sprintf("\t%s - id : %d\n", sig.Name, sig.SigID)
+			}
 		} else {
 			out = emptyStyle.Render("No message selected")
 		}
